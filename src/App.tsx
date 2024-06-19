@@ -1,11 +1,12 @@
-
-function App() {
+import logo from './assets/logo.svg'
+export default function App() {
 
   return (
     <div>
-      <h1>Olá Mundo!!</h1>
+      <img src={logo} alt="" />
+      <p className="underline text-3xl">oi</p>
+      <h1 className="underline">Olá Mundo!!</h1>
     </div>
   )
 }
 
-export default App

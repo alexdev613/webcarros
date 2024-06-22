@@ -9,9 +9,11 @@ interface AuthProviderProps {
 type AuthContextData = {
   signed: boolean;
   loadingAuth: boolean;
+  handleInfoUser: ({uid, name, email}: UserProps) => void;
+  user: UserProps | null;
 }
 
-interface UserPorps {
+interface UserProps {
   uid: string;
   name: string | null;
   email: string | null;
@@ -20,7 +22,7 @@ interface UserPorps {
 export const AuthContext = createContext({} as AuthContextData);
 
 function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<UserPorps | null>(null); // vai ser um objeto UserProps ou null
+  const [user, setUser] = useState<UserProps | null>(null); // vai ser um objeto UserProps ou null
   const [loadingAuth, setLoadingAuth] = useState(true)
 
   useEffect(() => {
@@ -52,11 +54,21 @@ function AuthProvider({ children }: AuthProviderProps) {
 
   }, []);
 
+  function handleInfoUser({ uid, name, email}: UserProps): void {
+    setUser({
+      uid,
+      name,
+      email
+    })
+  }
+
   return (
     <AuthContext.Provider
       value={{
         signed: !!user,
-        loadingAuth
+        loadingAuth,
+        handleInfoUser,
+        user
       }}
     >
       {children}

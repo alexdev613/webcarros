@@ -1,3 +1,4 @@
+import { ChangeEvent, useState, useContext } from "react";
 import { Container } from "../../../components/container";
 import { DashboardHeader } from "../../../components/painelheader";
 import { Input } from "../../../components/input";
@@ -6,6 +7,17 @@ import { FiUpload } from "react-icons/fi";
 import { useForm } from 'react-hook-form';
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { v4 as uuidV4 } from 'uuid';
+
+import { storage } from '../../../services/firebaseConnection';
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject
+} from 'firebase/storage';
+
+import { AuthContext } from "../../../contexts/AuthContext";
 
 const schema = z.object({
   name: z.string().min(1, "O campo nome é obrigatório"),
@@ -23,10 +35,51 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export function New() {
+  const {user} = useContext(AuthContext);
+
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
     resolver: zodResolver(schema),
     mode: "onChange"
   })
+
+  async function handleFile(e: ChangeEvent<HTMLInputElement>) {
+    if(e.target.files && e.target.files[0]) {
+      const image = e.target.files[0];
+
+      if(image.type === 'image/jpeg' || image.type === 'image/png') {
+        // Enviar pro banco a imagem...
+        await handleUpload(image);
+      } else {
+        alert("Envie uma imagem jpeg ou png!");
+        return;
+      }
+    }
+  }
+
+  async function handleUpload(image: File) {
+    // Se por qualquer motivo não tenha um uid de user, como falha no servidor do google para por aqui:
+    if(!user?.uid) {
+      return;
+    }
+
+    // se tiver user.uid então seguimos aqui:
+
+    // Importante: instalar a lib uuid e a sua tipagem @types/uuid, para evitar salvar duas imagens com mesmo nome e
+    // a última sobrescrever a primeira. Ela tema a função de criar um nome aleatório para cada arquivo enviado
+
+    const currentUid = user?.uid; // o usuário/dono da imagem
+    const uidImage = uuidV4(); // será gerado nessa variável um id aleatório para essa imagem que nunca vai se repetir
+
+    const uploadRef = ref(storage, `images/${currentUid}/${uidImage}`)
+
+    uploadBytes(uploadRef, image)
+    .then((snapshot) => {
+      getDownloadURL(snapshot.ref).then((downloadUrl) => {
+        console.log("URL DE ACESSO DA FOTO ", downloadUrl);
+      })
+    })
+
+  }
 
   function onSubmit(data: FormData) {
     console.log(data);
@@ -41,7 +94,12 @@ export function New() {
             <FiUpload size={30} color="#000" />
           </div>
           <div className="cursor-pointer">
-            <input type="file" accept="image/" className="opacity-0 cursor-pointer" />
+            <input
+            type="file"
+            accept="image/"
+            className="opacity-0 cursor-pointer"
+            onChange={handleFile}
+          />
           </div>
         </button>
       </div>

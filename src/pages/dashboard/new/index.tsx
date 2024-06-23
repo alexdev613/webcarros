@@ -3,19 +3,20 @@ import { Container } from "../../../components/container";
 import { DashboardHeader } from "../../../components/painelheader";
 import { Input } from "../../../components/input";
 
-import { FiUpload } from "react-icons/fi";
+import { FiUpload, FiTrash } from "react-icons/fi";
 import { useForm } from 'react-hook-form';
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { v4 as uuidV4 } from 'uuid';
 
-import { storage } from '../../../services/firebaseConnection';
+import { storage, db } from '../../../services/firebaseConnection';
 import {
   ref,
   uploadBytes,
   getDownloadURL,
   deleteObject
 } from 'firebase/storage';
+import { addDoc, collection } from 'firebase/firestore';
 
 import { AuthContext } from "../../../contexts/AuthContext";
 
@@ -34,13 +35,22 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+interface ImageItemProps {
+  uid: string;
+  name: string;
+  previewUrl: string;
+  url: string;
+}
+
 export function New() {
   const {user} = useContext(AuthContext);
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
     resolver: zodResolver(schema),
     mode: "onChange"
-  })
+  });
+
+  const [carImages, setCarImages] = useState<ImageItemProps[]>([]);
 
   async function handleFile(e: ChangeEvent<HTMLInputElement>) {
     if(e.target.files && e.target.files[0]) {
@@ -76,14 +86,70 @@ export function New() {
     .then((snapshot) => {
       getDownloadURL(snapshot.ref).then((downloadUrl) => {
         console.log("URL DE ACESSO DA FOTO ", downloadUrl);
+
+        const imageItem = {
+          name: uidImage,
+          uid: currentUid,
+          // cria uma url de objeto que não é a mesma url que enviamos para o storage, não é o downloadURL
+          previewUrl: URL.createObjectURL(image),
+          // esse previewUrl nada mais é que a criação de uma url 'fictícia' local, somente para exibirmos em uma tag img as imagens que upamos para o storage
+          url: downloadUrl, // está é a url real, que vem diretamente do nosso storage do firebase
+        }
+
+        setCarImages( (images) => [...images, imageItem] ); // toda vez que enviarmos uma imagem e der tudo certo, ele coloca esta imagem representado pelo objeto imageItem dentro de um array 
       })
     })
 
   }
 
-  function onSubmit(data: FormData) {
-    console.log(data);
+  async function handleDeleteImage(item: ImageItemProps) {
+    console.log(item)
+    const imagePath = `images/${item.uid}/${item.name}`;
+
+    const imageRef = ref(storage, imagePath);
+
+    try {
+      await deleteObject(imageRef);
+      setCarImages(carImages.filter((car) => car.url !== item.url));
+    } catch(err) {
+      console.log("ERRO AO DELETAR ", err);
+    }
   }
+
+  function onSubmit(data: FormData) {
+    
+    const carListImages = carImages.map( car => {
+      return {
+        uid: car.uid,
+        name: car.name,
+        url: car.url
+      } // dispensamos a propriedade previewUrl pois ela não importa aqui
+    })
+
+    addDoc(collection(db, "cars"), {
+      name: data.name,
+      model: data.model,
+      whatsapp: data.whatsapp,
+      city: data.city,
+      year: data.year,
+      km: data.km,
+      price: data.price,
+      description: data.description,
+      created: new Date(),
+      owner: user?.name,
+      uid: user?.uid,
+      images: carListImages,
+    })
+    .then(() => {
+      reset();
+      setCarImages([]);
+      console.log("CADASTRADO COM SUCESSO");
+    })
+    .catch((error) => {
+      console.log("ERRO AO CADASTRAR NO BANCO: ", error)
+    })
+  }
+
 
   return (
     <Container>
@@ -102,6 +168,19 @@ export function New() {
           />
           </div>
         </button>
+
+        {carImages.map( item => (
+          <div key={item.name} className="w-full h-32 flex items-center justify-center relative">
+            <button className="absolute" onClick={ () => handleDeleteImage(item) } >
+              <FiTrash size={28} color="#FFF" /> 
+            </button>
+            <img
+              src={item.previewUrl}
+              className="rounded-lg w-full h-32 object-cover"
+              alt="Foto do carro"
+            />
+          </div>
+        ))}
       </div>
 
       <div className="w-full bg-white p-3 rounded-lg flex flex-col sm:flex-row items-center gap-2 mt-2">
@@ -191,7 +270,7 @@ export function New() {
           </div>
 
           <div className="mb-3">
-            <label className="mb-2 font-medium">Nome do carro</label>
+            <label className="mb-2 font-medium">Descrição</label>
             <textarea
               className="border-2 w-full rounded-md h-24 px-2"
               {...register("description")}

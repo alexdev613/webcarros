@@ -1,6 +1,67 @@
+import { useState, useEffect } from "react";
 import { Container } from "../../components/container";
+import {
+  collection,
+  query,
+  getDocs,
+  orderBy
+} from 'firebase/firestore';
+import { db } from '../../services/firebaseConnection';
+import { Link } from "react-router-dom";
+
+interface CarsProps {
+  id: string;
+  name: string;
+  year: string;
+  uid: string;
+  price: string | number;
+  city: string;
+  km: string;
+  images: CarImageProps[];
+}
+
+interface CarImageProps {
+  name: string;
+  uid: string;
+  url: string;
+}
 
 export function Home() {
+  const [cars, setCars] = useState<CarsProps[]>([]);
+
+  useEffect(() => {
+    function loadCars() {
+      const carsRef = collection(db, "cars");
+      const queryRef = query(carsRef)
+      
+      getDocs(queryRef)
+      .then((snapshot) => {
+
+        let listcars = [] as CarsProps[];
+
+        snapshot.forEach( doc => {
+          listcars.push({
+            id: doc.id,
+            name: doc.data().name,
+            year: doc.data().year,
+            km: doc.data().km,
+            city: doc.data().city,
+            price: doc.data().price,
+            images: doc.data().images,
+            uid: doc.data().uid,
+          })
+        })
+
+        console.log(listcars);
+
+        setCars(listcars);
+      })
+
+    }
+
+    loadCars();
+  }, []);
+
   return (
     <Container>
       <section className="bg-white p-4 rounded-lg w-full max-w-3xl mx-auto flex justify-center items-center gap-2">
@@ -20,27 +81,31 @@ export function Home() {
 
       <main className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 
-        <section className="w-full bg-white rounded-lg">
-          <img
-            className="w-full rounded-lg mb-2 max-h-72 hover:scale-105 transition-all"
-            src="https://image.webmotors.com.br/_fotos/anunciousados/gigante/2024/202403/20240314/fiat-mobi-1-0-evo-flex-like--manual-wmimagem19372282793.webp?s=fill&w=1920&h=1440&q=75"
-            alt="Carro"
-          />
-          <p className="flex flex-col px-2">Fiat Mobi 1.0 Evo Flex</p>
+        {cars.map( car => (
+          <Link key={car.id} to={`/car/${car.id}`}>
+            <section key={car.id} className="w-full bg-white rounded-lg">
+              <img
+                className="w-full rounded-lg mb-2 max-h-72 hover:scale-105 transition-all"
+                src={car.images[0].url}
+                alt={car.name}
+              />
+              <p className="flex flex-col px-2">{car.name}</p>
 
-          <div className="flex flex-col px-2">
-            <span className="text-zinc-700 mb-6">Ano 2024/2024 | 23.000 km</span>
-            <strong className="text-black font-medium text-xl">R$ 73.900</strong>
-          </div>
+              <div className="flex flex-col px-2">
+                <span className="text-zinc-700 mb-6">Ano {car.year} | {car.km} km</span>
+                <strong className="text-black font-medium text-xl">R$ {car.price}</strong>
+              </div>
 
-          <div className="w-full h-px bg-slate-200 my-2"></div>
+              <div className="w-full h-px bg-slate-200 my-2"></div>
 
-          <div className="px-2 pb-2">
-            <span className="text-black">
-              São Bernardo do Campo
-            </span>
-          </div>
-        </section>
+              <div className="px-2 pb-2">
+                <span className="text-black">
+                  {car.city}
+                </span>
+              </div>
+            </section>
+          </Link>
+        ))}
 
       </main>
     </Container>

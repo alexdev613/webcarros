@@ -33,7 +33,7 @@ export function Home() {
   useEffect(() => {
     function loadCars() {
       const carsRef = collection(db, "cars");
-      const queryRef = query(carsRef)
+      const queryRef = query(carsRef, orderBy("created", "desc"));
       
       getDocs(queryRef)
       .then((snapshot) => {

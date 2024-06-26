@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Container } from '../../components/container';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { FaWhatsapp } from 'react-icons/fa';
 
 import { getDoc, doc } from 'firebase/firestore';
@@ -35,7 +35,8 @@ export function CarDetails() {
   const [car, setCar] = useState<CarProps>();
 
   const [sliderPreview, setSliderPreview] = useState<number>(2);
-
+  const navigate = useNavigate();
+  
   useEffect( () => {
     async function loadCar() {
       if(!id) { return }; // Se não houver id na rota para a execução (nem tenta carregar nada!)
@@ -44,6 +45,11 @@ export function CarDetails() {
   
       getDoc(docRef)
       .then((snapshot) => {
+
+        if(!snapshot.data()) {
+          navigate("/");
+        }
+
         setCar({
           id: snapshot.id,
           name: snapshot.data()?.name,
@@ -92,20 +98,22 @@ export function CarDetails() {
   return (
     <Container>
       
-      <Swiper
-        slidesPerView={sliderPreview}
-        pagination={{ clickable: true }}
-        navigation
-      >
-        {car?.images.map( image => (
-          <SwiperSlide key={image.name}>
-            <img
-              src={image.url}
-              className='w-full h-96 object-cover'
-            />
-          </SwiperSlide>
-        ))}
-      </Swiper>
+      { car && (
+        <Swiper
+          slidesPerView={sliderPreview}
+          pagination={{ clickable: true }}
+          navigation
+        >
+          {car?.images.map( image => (
+            <SwiperSlide key={image.name}>
+              <img
+                src={image.url}
+                className='w-full h-96 object-cover'
+              />
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      )}
 
       { car && (
         <main className="w-full bg-white rounded-lg p-6 my-4">
@@ -147,7 +155,8 @@ export function CarDetails() {
           <p>{car?.whatsapp}</p>
 
           <Link
-            to="/"
+            to={`https://api.whatsapp.com/send?phone=${car?.whatsapp}&text=Olá, vi esse ${car?.name} no site WebCarros e fiquei interessado!`}
+            target='_blank'
             className='bg-green-500 w-full text-white flex items-center justify-center gap-2 my-6 h-11 text-xl rounded-lg font-medium'
           >
             Conversar com o vendedor

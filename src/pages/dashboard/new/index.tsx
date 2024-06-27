@@ -127,7 +127,7 @@ export function New() {
     })
 
     addDoc(collection(db, "cars"), {
-      name: data.name,
+      name: data.name.toUpperCase(),
       model: data.model,
       whatsapp: data.whatsapp,
       city: data.city,
@@ -265,7 +265,7 @@ export function New() {
               register={register}
               name="price"
               error={errors.price?.message}
-              placeholder="Ex.: Onix 1.0..."
+              placeholder="Ex.: 69.000..."
             />
           </div>
 
@@ -276,7 +276,7 @@ export function New() {
               {...register("description")}
               name="description"
               id="description"
-              placeholder="Digite a descrição completa dobre seu carro..."
+              placeholder="Digite a descrição completa sobre seu carro..."
             />
             {errors.description && <p className="mb-1 text-red-500">{errors.description.message}</p>}
           </div>

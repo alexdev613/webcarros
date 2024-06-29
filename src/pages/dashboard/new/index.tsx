@@ -20,6 +20,8 @@ import { addDoc, collection } from 'firebase/firestore';
 
 import { AuthContext } from "../../../contexts/AuthContext";
 
+import toast from "react-hot-toast";
+
 const schema = z.object({
   name: z.string().min(1, "O campo nome é obrigatório"),
   model: z.string().min(1, "O modelo do veículo é obrigatório"),
@@ -96,7 +98,9 @@ export function New() {
           url: downloadUrl, // está é a url real, que vem diretamente do nosso storage do firebase
         }
 
-        setCarImages( (images) => [...images, imageItem] ); // toda vez que enviarmos uma imagem e der tudo certo, ele coloca esta imagem representado pelo objeto imageItem dentro de um array 
+        // toda vez que enviarmos uma imagem e der tudo certo, ele coloca esta imagem representado pelo objeto imageItem dentro de um array 
+        setCarImages( (images) => [...images, imageItem] );
+        toast.success("Imagem cadastrada com sucesso!");
       })
     })
 
@@ -117,6 +121,13 @@ export function New() {
   }
 
   function onSubmit(data: FormData) {
+
+    // se o usuário não cadastrar pelo meno suma imagem, aparece um toast e para a execuçãod a função:
+    if(carImages.length === 0) {
+      toast.error("Envie pelo menos uma imagem!")
+      return;
+    }
+
     
     const carListImages = carImages.map( car => {
       return {
@@ -144,9 +155,11 @@ export function New() {
       reset();
       setCarImages([]);
       console.log("CADASTRADO COM SUCESSO");
+      toast.success("Carro cadastrado com sucesso!");
     })
     .catch((error) => {
-      console.log("ERRO AO CADASTRAR NO BANCO: ", error)
+      console.log("ERRO AO CADASTRAR NO BANCO: ", error);
+      toast.error("Erro ao cadastrar no banco!");
     })
   }
 

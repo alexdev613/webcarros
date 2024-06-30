@@ -142,7 +142,7 @@ export function Home() {
                 onLoad={() => handleImageLoad(car.id)}
                 style={{ display: loadImages.includes(car.id) ? "block": "none" }}
               />
-              <p className="flex flex-col px-2">{car.name}</p>
+              <strong className="flex flex-col px-2">{car.name}</strong>
 
               <div className="flex flex-col px-2">
                 <span className="text-zinc-700 mb-6">Ano {car.year} | {car.km} km</span>

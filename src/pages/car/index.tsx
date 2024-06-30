@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Container } from '../../components/container';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { FaWhatsapp } from 'react-icons/fa';
+import { FaWhatsapp, FaExpandAlt } from 'react-icons/fa';
 
 import { getDoc, doc } from 'firebase/firestore';
 import { db } from '../../services/firebaseConnection';
+
+import { ImageModal } from '../../components/imagemodal/index';
 
 import { Swiper, SwiperSlide } from 'swiper/react';
 
@@ -36,6 +38,13 @@ export function CarDetails() {
 
   const [sliderPreview, setSliderPreview] = useState<number>(2);
   const navigate = useNavigate();
+
+  const [isImageModalOpen, setIsImageModal] = useState(false);
+  const [url, setUrl] = useState("");
+
+  function closeModal() {
+    setIsImageModal(false);
+  }
   
   useEffect( () => {
     async function loadCar() {
@@ -95,8 +104,21 @@ export function CarDetails() {
 
   }, []);
 
+  function handleModal(url: string): void {
+    setIsImageModal(true);
+    setUrl(url);
+    console.log(`Olá: ${url}`)
+  }
+
   return (
     <Container>
+      
+      <ImageModal
+        isOpen={isImageModalOpen}
+        onClose={closeModal}
+      >
+        <img src={url} alt={url} className='max-h-[80vh] w-full object-contain rounded-lg'/>
+      </ImageModal>
       
       { car && (
         <Swiper
@@ -105,11 +127,19 @@ export function CarDetails() {
           navigation
         >
           {car?.images.map( image => (
-            <SwiperSlide key={image.name}>
-              <img
-                src={image.url}
-                className='w-full h-96 object-cover'
-              />
+            <SwiperSlide key={image.name} >
+              <div className='relative flex justify-center items-center'>
+                <img
+                  src={image.url}
+                  className='w-full h-96 object-cover'
+                />
+                <div
+                  className='absolute bg-slate-400 hover:bg-slate-50 hover:scale-125 duration-700 h-8 flex justify-center items-center rounded-lg w-8'
+                  onClick={() => handleModal(image.url)}
+                >
+                  <FaExpandAlt size={26} color="#666" />
+                </div>
+              </div>
             </SwiperSlide>
           ))}
         </Swiper>

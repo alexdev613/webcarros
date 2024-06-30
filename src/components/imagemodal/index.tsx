@@ -18,11 +18,11 @@ export function ImageModal({ isOpen, onClose, children}: ModalProps) {
       onClick={onClose}
     >
       <div
-        className='bg-white p-4 max-h-[85vh] rounded-lg relative'
+        className='bg-white p-4 max-h-[85vh] rounded-lg relative mx-7'
         onClick={(e) => e.stopPropagation()} // Impede o clique de se propagar para o fundo
       >
         <button
-          className='absolute flex justify-center items-center -top-6 -right-7 bg-white p-2 border-2
+          className='absolute flex justify-center items-center -top-4 -right-5 bg-white p-2 border-2
           border-slate-600 rounded-full text-gray-600 hover:text-gray-900 hover:scale-110 transition-all'
           onClick={onClose}
         >

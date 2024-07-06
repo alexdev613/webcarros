@@ -174,11 +174,11 @@ export function New() {
           </div>
           <div className="cursor-pointer">
             <input
-            type="file"
-            accept="image/"
-            className="opacity-0 cursor-pointer"
-            onChange={handleFile}
-          />
+              type="file"
+              accept="image/"
+              className="opacity-0 cursor-pointer"
+              onChange={handleFile}
+            />
           </div>
         </button>
 

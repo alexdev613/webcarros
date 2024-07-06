@@ -117,7 +117,12 @@ export function CarDetails() {
         isOpen={isImageModalOpen}
         onClose={closeModal}
       >
-        <img src={url} alt={url} className='max-h-[80vh] w-full object-contain rounded-lg'/>
+        <img
+          src={url}
+          alt={url}
+          className='max-h-[80vh] w-full object-contain rounded-lg'
+          draggable={false}
+        />
       </ImageModal>
       
       { car && (

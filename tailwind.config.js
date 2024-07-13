@@ -5,7 +5,16 @@ export default {
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      keyframes: {
+        loading: {
+          to: { transform: 'rotate(360deg)' },
+        },
+      },
+      animation: {
+        loading: 'loading 1.2s linear infinite',
+      },
+    },
   },
   plugins: [],
 }

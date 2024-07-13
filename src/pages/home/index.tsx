@@ -9,6 +9,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../../services/firebaseConnection';
 import { Link } from "react-router-dom";
+import { LoadingSpinner } from '../../components/loadingspinner';
 
 interface CarsProps {
   id: string;
@@ -132,9 +133,11 @@ export function Home() {
           <Link key={car.id} to={`/car/${car.id}`}>
             <section key={car.id} className="w-full bg-white rounded-lg">
               <div
-                className="w-full h-72 rounded-lg bg-slate-200"
+                className="w-full h-72 rounded-lg bg-slate-200 flex justify-center items-center"
                 style={{ display: loadImages.includes(car.id) ? "none": "block"}}
-              ></div>
+              >
+                <LoadingSpinner />
+              </div>
               <img
                 className="w-full rounded-lg mb-2 max-h-72 hover:scale-105 transition-all"
                 src={car.images[0].url}
